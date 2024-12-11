@@ -1,0 +1,77 @@
+The best CI/CD approach:
+
+CI PROCESS:
+
+Whenever the developer push the code into Github. We are using the Jenkins and integrating the GitHub and Jenkins using web hook. Using web hook is very best approach to use because whenever the developer make a commit to the GitHub then GitHub sends notification to Jenkins to trigger a pipeline instead of continuously monitoring the GitHub using poll SCM or scheduled jobs. To run the job we are using the docker as agent, docker is light weight and easy to use because we don’t need to install and configure manually. And then we are build the application using maven if we are using java based application and then after successful build we will run the test cases using Junit or selenium and then after it is successful then we will scan for code analysis and security vulnerabilities and then after everything is good we will create the docker image out of it using shell commands. If it is unsuccessful then we will send email notification or slack notifications. After the docker image is build, we will push the docker image to the container registry either docker hub or ECR or any other registry using shell script. This is the CI Process.
+
+CD PROCESS:
+
+For the deployment we are using the kubernetes cluster and inside it we have installed two CD tools that are argo image updater and argo cd.
+So whenever the registry has been updated with new image or new image is upload to the registry the argo image updater is continuously monitoring the registry and if it finds any new image then it will take that image and then it will upload to the another GitHub repository that contains only manifest files like service.yaml file, deploy.yaml, pod.yaml etc and it will update the image in the pod.yaml or service.yaml or deploy.yaml then the argo cd will take that file and it will run in the kubernate cluster. This is CD Process.
+This both CI/CD will the best approach.
+
+How to add users, create roles and assign roles to the users in Jenkins:
+
+1. We can create users in Jenkins, go to Jenkins and manage current user and then click on create user.
+2. Then add the user details like username, password, and email and then click on save.user will be created successfully.
+3. In Jenkins, by default only few roles is there, if you want to more roles then you need to install the plugin called Role Based Authorisation strategy.
+4. Go to manage Jenkins -> configure global security -> Authorisation -> select role based strategy  and then click on save.
+5. Go to manage Jenkins  -> click on mange and assign roles then click on manage roles.
+6. Type the role i.e developer and give the necessary permission like read, update, delete etc and then click on save.
+7. Go to manage Jenkins -> manage and assign roles -> click on assign roles and then select the user and then for that user assign the role that we have created that’s it.
+8. In this way, you can create users, and then you can create roles and assign that roles to the users.
+
+SHARED LIBRARY:
+
+Consider this example, amazon is using 1000’s of micro services and each micro services are independent to each other  and we need to write for each micro service separate Jenkins file. If you need to change something that is common in all the Jenkins file, we need to change by doing through each and every micro service. This is very difficult to make changes and it takes a lot of time.
+
+If you use shared library means a piece of code. We can resolve above problem. The common code that is present inside the Jenkins file are moved to files and we will import that files to the Jenkins file. In future, if we want to change something then in shared library we can make modification and then it will reflect in all the Jenkins files. It is that easy to maintain.
+
+Let’s see how we can use shared library:
+1. In Jenkins, go to manage Jenkins -> manage system -> search for global pipeline and give the name for shared library and the git url and other details and save the changes.
+2. In GitHub main directory( starting page) you need to create the folder called vars and then go inside that folder.
+3. Create the files that you want to store the data like of you want this file for to store git checkout or build etc you need to give appropriate name for it like mavenBuild.groovy.
+4. The file name should be camel case i.e starts with lower case and then upper case. with groovy extension.
+5. Inside the file, just create one function like def call() {
+          Sh ‘ mvn clean’
+         }
+   6. Whatever the commands or instructions that         
+        You want to keep inside the function.
+   7. Go to Jenkins file and import the shared 
+      library like @Library(“my-shared-library”) _
+8.replace the code with file name that you have      
+  created in vars folder that’s it. Like 
+  mavenBuild()
+9. Here my-shared-library is the same name that we have configured in the Jenkins.
+
+Let’s see how we can trigger pipeline using AWS: 
+
+CI PROCESS:
+
+1. In AWS, Go to code build and click on create code build.
+2. Give the details like GitHub and the name of the build etc.
+3. And write the build spec yaml file. In that we need to write the stages for it like build, testing, image building and pushing the image to registry.
+4. To store the credentials use systems manager in AWS.
+5. To access the code build service to the systems manager we have to create the role for it and add the permission for the systems manager in that role.
+6. To create a role, you need to go to IAM and click on role and then create role and add the permissions.
+7. Then save the changes and click on start build.
+8. If you want to trigger this build whenever there a change in the GitHub you need to configure the AWS code pipeline.
+9. For that go to AWS code pipeline and click on create pipeline and then choose the version control system like GitHub and then integrate with it by verifying it.
+10. And then choose the build stage that we have created above i.e code build.
+11. Make changes in that GitHub then it will automatically trigger the pipeline.
+
+CD PROCESS: 
+
+1. in AWS, go to code deploy and then click on the create application and then fill details like name of the application and the where you want to deploy like ec2 etc choose ec2.
+2. create the ec2 instance.
+3. Go to IAM, click on roles and then create the roles and then add the permissions for ec2 and code deploy because we need to connect these two services.
+4. Go to ec2 instance and then attach this role to it. Click on actions and then security and then IAM  and then attach the role.
+5. Login into ec2 instance and then we need to install the code deploy agent on it and also need to install the docker because we need to run the application.
+6. Follow the official document to install the code deploy agent on the ec2 instance.
+7. In AWS, go to code deploy and then create the deployment groups.
+8. After that create the deployments and in that we need to select the deployment groups.
+9. In order to connect the CI and CD, we need to connect code pipeline to the code deploy.
+10. For that go to code pipeline and then add the stage for it, by editing the code pipeline.in that you need to select the application name that is mention in the code deploy and the deployment groups.
+11. in order to take the image from the registry we need to write the appspec yaml file. Here  we need to mention details like take the image from the registry and then run that container. And whenever the changes occurs in the GitHub source code then this container will be deleted.
+12. Make the changes in the source code and then verify the entire pipeline.
+13. This is how we can create the CICD using the AWS tools in AWS
