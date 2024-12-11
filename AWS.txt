@@ -13,6 +13,8 @@ User sends request -> internet gateway -> public subnet -> elastic load balancer
 
 If you want to access anything from the internet then the private subnet should not allow it’s ip to the internet. For that, it follows the masking of ip through router or elastic load balancer. If that masking is done using elastic load balancer then it is called as SNAT gateway. If that masking is done using router then it is called as NAT gateway.
 
+====================================================================================================================================================================
+
 SECURITY GROUPS AND NACL:
 
 Security groups:
@@ -31,6 +33,7 @@ Consider this scenario, for ec2 instance security groups are used to allow what 
 
 Let’s see there are 50 ec2 instance are placed inside the subnet and you want to control the traffic instead of creating the security groups for every ec2 instance, you can create the NACL and it will applied to subnet that means it will apply automatically for all the instance that are present inside it. We can save a lot of time.
 
+===========================================================================================================================================================================
 Route53:
 Route53 is DNS solution . DNS stands for Domain Name System.
 DNS is used to map the ip address to the Name.
@@ -57,6 +60,7 @@ Let’s see how we can create the Boston host:
 In simply, if you want to create the autoscaling group then you need to create the launch template.
 If you want to create the load balancer then you need to create the target groups.
 
+=======================================================================================================================================================================
 # Scenario Based Interview Questions on EC2, IAM and VPC
 
 
@@ -121,7 +125,7 @@ A: To securely access the instances in the private subnet, you can set up a bast
       Configure the security group for the bastion host to allow inbound SSH (or RDP for Windows) traffic from your IP address or a restricted range of trusted IP addresses. This limits access to the bastion host to authorized administrators only.
       Place the instances in the private subnet and configure their security groups to allow inbound SSH (or RDP) traffic from the bastion host security group.
       SSH (or RDP) into the bastion host using your private key or password. From the bastion host, you can then SSH (or RDP) into the instances in the private subnet using their private IP addresses.
-
+====================================================================================================================================================================
 
 S3 BUCKET:
 S3 is used to store the data of any type like files, folders, videos, images, CSV files etc.
@@ -139,6 +143,38 @@ The five major advantages of S3 are:
 	4.	Cost effective that means based on your requirements you can choose the storage account so that you will not charge more.
 	5.	Performance that means we can easily access this bucket anywhere
 
+======================================================================================================================================================================
+
+CI PROCESS:
+
+1. In AWS, Go to code build and click on create code build.
+2. Give the details like GitHub and the name of the build etc.
+3. And write the build spec yaml file. In that we need to write the stages for it like build, testing, image building and pushing the image to registry.
+4. To store the credentials use systems manager in AWS.
+5. To access the code build service to the systems manager we have to create the role for it and add the permission for the systems manager in that role.
+6. To create a role, you need to go to IAM and click on role and then create role and add the permissions.
+7. Then save the changes and click on start build.
+8. If you want to trigger this build whenever there a change in the GitHub you need to configure the AWS code pipeline.
+9. For that go to AWS code pipeline and click on create pipeline and then choose the version control system like GitHub and then integrate with it by verifying it.
+10. And then choose the build stage that we have created above i.e code build.
+11. Make changes in that GitHub then it will automatically trigger the pipeline.
+
+CD PROCESS: 
+
+1. in AWS, go to code deploy and then click on the create application and then fill details like name of the application and the where you want to deploy like ec2 etc choose ec2.
+2. create the ec2 instance.
+3. Go to IAM, click on roles and then create the roles and then add the permissions for ec2 and code deploy because we need to connect these two services.
+4. Go to ec2 instance and then attach this role to it. Click on actions and then security and then IAM  and then attach the role.
+5. Login into ec2 instance and then we need to install the code deploy agent on it and also need to install the docker because we need to run the application.
+6. Follow the official document to install the code deploy agent on the ec2 instance.
+7. In AWS, go to code deploy and then create the deployment groups.
+8. After that create the deployments and in that we need to select the deployment groups.
+9. In order to connect the CI and CD, we need to connect code pipeline to the code deploy.
+10. For that go to code pipeline and then add the stage for it, by editing the code pipeline.in that you need to select the application name that is mention in the code deploy and the deployment groups.
+11. in order to take the image from the registry we need to write the appspec yaml file. Here  we need to mention details like take the image from the registry and then run that container. And whenever the changes occurs in the GitHub source code then this container will be deleted.
+12. Make the changes in the source code and then verify the entire pipeline.
+13. This is how we can create the CICD using the AWS tools in AWS
+------------------------------------------------------------------------------======================================================================================
 
 Cloud Watch:
 Cloud watch is a gatekeeper or watchmen to the aws cloud account and which help in understanding and implementing the monitoring, alerting, reporting and logging. With the help of this features, we can keep track of activities that are happening in aws account.
