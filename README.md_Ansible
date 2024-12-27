@@ -1,6 +1,6 @@
 Variables Precedences:
 
-1. **playbook vars**
+# playbook vars
 
 ---
 - name: playbook varaiables
