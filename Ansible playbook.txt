@@ -121,7 +121,7 @@ Ansible
 
 Variables Precedences:
 
-1. ** playbook vars **
+1. **playbook vars**
 
 ---
 - name: playbook varaiables
@@ -142,7 +142,7 @@ Variables Precedences:
      debug:
        var: dboutput
 
-2. **  group_vars/all  (for all the hosts in inventory file) **
+2. **group_vars/all  (for all the hosts in inventory file)**
 
 - create file group_vars/all
 
@@ -158,14 +158,14 @@ Variables Precedences:
   dbname: postgresqldb
   dbcomm: from group_vars/groupname_weservers
 
-4. ** host_vars/host_name **
+4. **host_vars/host_name**
 create file host_vars/web01
 
 # inside file
   dbname: mallidb
   dbcomm: from host_vars/web01
   
-** Priority: **
+**Priority:**
 
 0. -e  var_name =value (in commnad line can override values - which is higher priority)
 1. playbook vars
