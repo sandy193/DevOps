@@ -119,8 +119,63 @@ Ansible
 ===============================================================================================================================================
 
 
+Variables Precedences:
 
+1. ** playbook vars **
 
+---
+- name: playbook varaiables
+  hosts: all
+  become: yes
+  vars:
+    dbname: sandhyadb
+    dbcomm: from playbook varaiable
+
+  tasks:
+    - name: to create db user
+      ansible.builtin.user:
+        name: "{{dbname}}"
+        comm: "{{dbcomm}}"
+      register: dboutput
+
+    -name: to print output
+     debug:
+       var: dboutput
+
+2. **  group_vars/all  (for all the hosts in inventory file) **
+
+- create file group_vars/all
+
+# inside file
+  dbname: mysqldb
+  dbcomm: group_vars/all
+
+3. ** group_vars/groupname (for ceratin group of hosts) **
+
+- create file group_vars/webservers
+
+# inside file
+  dbname: postgresqldb
+  dbcomm: from group_vars/groupname_weservers
+
+4. ** host_vars/host_name **
+create file host_vars/web01
+
+# inside file
+  dbname: mallidb
+  dbcomm: from host_vars/web01
+  
+** Priority: **
+
+0. -e  var_name =value (in commnad line can override values - which is higher priority)
+1. playbook vars
+2. host vars file
+3. group_name vars file
+4. vars_all file
+
+in roles :
+1.. vars.yaml file
+2. defaults.yaml file
 
 
 
