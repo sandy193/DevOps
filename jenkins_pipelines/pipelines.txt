@@ -1,0 +1,278 @@
+1. Normal Declarative Pipeline
+
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building...'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline Execution Completed.'
+        }
+    }
+}
+
+
+Explanation:
+agent any: Specifies that the pipeline can run on any available agent (node).
+stages: Contains sequential stages like Build, Test, and Deploy.
+steps: Defines the actions for each stage (e.g., shell commands or scripts).
+post: Ensures post-execution tasks are always executed (e.g., notifications).
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Parallel Pipelines
+Used for optimizing time by running multiple tasks concurrently, such as parallel builds or tests.
+
+Pipeline Script:
+
+
+pipeline {
+    agent any
+    stages {
+        stage('Parallel Execution') {
+            parallel {
+                stage('Build') {
+                    steps {
+                        echo 'Building...'
+                    }
+                }
+                stage('Test') {
+                    steps {
+                        echo 'Testing...'
+                    }
+                }
+                stage('Security Scan') {
+                    steps {
+                        echo 'Scanning for security issues...'
+                    }
+                }
+            }
+        }
+    }
+}
+
+Explanation:
+parallel: Executes defined stages (e.g., Build, Test, Security Scan) simultaneously.
+Saves time in large projects where tasks can run independently.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. Shared Library Pipeline
+A shared library helps modularize and reuse code across multiple Jenkins pipelines, a critical skill for scalable CI/CD setups.
+
+1. example:
+
+Define Shared Library Script:
+Save this script as vars/myPipeline.groovy in your shared library repository.
+
+
+def call(String env) {
+    pipeline {
+        agent any
+        stages {
+            stage('Setup') {
+                steps {
+                    echo "Setting up for environment: ${env}"
+                }
+            }
+            stage('Build') {
+                steps {
+                    echo 'Building...'
+                }
+            }
+        }
+    }
+}
+
+Jenkinsfile Using Shared Library:
+groovy
+
+@Library('my-shared-library') _
+myPipeline('dev')
+
+
+Explanation:
+Shared Libraries: Enable reuse of pipeline code across multiple projects.
+call method: Acts as an entry point for the shared library function.
+Modularity: Different teams/projects can share the same library for consistency.
+
+
+2. example:
+
+Shared Library (Defined in vars/mySharedFunction.groovy):
+
+def call(String env) {
+    echo "Running pipeline for environment: ${env}"
+}
+
+Jenkinsfile:
+
+@Library('shared-pipeline') _
+
+pipeline {
+    agent any
+    stages {
+        stage('Run Shared Function') {
+            steps {
+                script {
+                    mySharedFunction('prod')
+                }
+            }
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+4. Multi-Branch Pipeline
+Automatically builds different branches (e.g., dev, staging, production) and is essential for multi-environment workflows.
+
+Pipeline Script: 
+
+
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build') {
+            steps {
+                echo "Building branch ${env.BRANCH_NAME}"
+            }
+        }
+        stage('Test') {
+            steps {
+                echo "Running tests on branch ${env.BRANCH_NAME}"
+            }
+        }
+    }
+}
+
+Explanation:
+checkout scm: Checks out the source code from the branch triggering the pipeline.
+env.BRANCH_NAME: Dynamically retrieves the branch name.
+Simplifies handling CI/CD for multiple branches.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. Dynamic Pipelines with Parameters
+Adds flexibility by allowing users to pass parameters during pipeline execution.
+
+Pipeline Script:
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Branch to Build')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run Tests')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "Checking out branch: ${params.BRANCH}"
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Building...'
+            }
+        }
+        stage('Test') {
+            when {
+                expression { params.RUN_TESTS }
+            }
+            steps {
+                echo 'Running Tests...'
+            }
+        }
+    }
+}
+
+Explanation:
+parameters: Defines pipeline parameters (e.g., BRANCH and RUN_TESTS).
+when: Dynamically includes or skips stages based on conditions.
+Increases pipeline flexibility and adaptability.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** Cron Job Syntax in Jenkins **
+
+- In Jenkins, this is achieved using the "Build Triggers" section where you define a schedule in cron syntax.
+
+The Jenkins cron syntax has 5 fields:
+MINUTES HOURS DAY_OF_MONTH MONTH DAY_OF_WEEK
+
+Each field can have:
+*: Any value
+x: A specific value
+x,y,z: Multiple values
+x-y: A range of values
+*/n: Every nth value
+
+Example Schedules
+H/15 * * * *: Every 15 minutes.
+0 2 * * *: At 2 AM every day.
+0 12 * * 1-5: At 12 PM, Monday to Friday.
+30 8 1 * *: At 8:30 AM on the 1st day of every month.
+
+pipeline {
+    agent any
+    triggers {
+        cron('H 12 * * 1-5') // Triggers at 12 PM, Monday to Friday
+    }
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Running Build...'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running Tests...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying to Production...'
+            }
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
