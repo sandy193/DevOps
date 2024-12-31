@@ -1,0 +1,188 @@
+*******************Ansible playbook*****************************
+
+1. launch instances  (any 3 instances)
+
+- control instances
+
+name  = control
+image = ubuntu > micro
+keypair = create
+sg    = edit > name, desc > allow ssh > myip (ssh-22)
+launch
+
+- for web and db instances (increase count to 2 (right -hand side))
+
+name = 
+image =
+keypair = create new (ex. client)
+sg = edit > add new > select sg - control( first instances sg)
+launch
+
+-----------------------------------------------------------------------
+
+2. 
+
+- open gitbash
+- ssh -i downloads/Sandhya.pem ubuntu@ip (control instances public ip)
+- install ansible (on control instances)
+
+$ sudo apt update
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository --yes --update ppa:ansible/ansible
+$ sudo apt install ansible
+ansible --version
+
+----------------------------------------------------------------------
+
+3. 
+
+- create inventory file > vim inventory ( copy private ip for web and db in inventory)
+
+all:
+  hosts:
+    web01:
+      ansible_host: webbip1 (private ip)
+      ansible_user: ubuntu
+      ansible_ssh_privte_key_file: clientkey.pem
+    db01:
+      ansible_host: dbip2 (private ip)
+      ansible_user: ubuntu
+      ansible_ssh_privte_key_file: clientkey.pem
+
+- exit
+- cat Downloads/client.pem (client keypair)
+- copy private key
+- DO ssh to control instances (ssh -i Downloads/sandhya.pem ubuntu@controlip)
+- create > vim createkey.pem > paste private key from client.pem.
+- ls
+- ansible web01 -m ping -i inventory (error will pop-up)
+
+
+- sudo cat /etc/ansible/ansible.cfg
+- sudo -i 
+  cd /etc/ansible/ 
+  ls 
+  mv ansible.cfg ansible.cfg_backup (not to loose old file -renaming)
+  ansible-config init-disabled -t all > ansible.cfg
+  ls
+  vim ansible.cfg > /host_key_checking - enter > remove colon and edit as false
+  exit
+------------------------------------------------------
+
+- back to control instances 
+- ansible web01 -m ping -i inventory
+- chmod 400 clientkey.pem
+- ansible web01 -m ping -i inventory
+---------------------------------------------------
+
+4. write ansible playbook  (ansiblefile.yaml)
+5. run playbook
+6. verify services are installed in target machines (in aws instances)
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+  Notes:
+
+#adhoc commands 
+
+ansible server_name -m module_name -a "name: httpd, state: present" -i inventory --become
+
+#Ansible playbook command:
+
+ansible-playbook -i inventory playbook_name
+
+====================================================================================================================================================
+
+**Ansible**
+
+- playbook
+- yaml
+- agent-less
+
+
+* control node  - main node (choose any server and have ansible play book and run it then configure all servers in playbook to manage)
+* manage nodes - other servers ( control node manages the all nodes - (target servers))
+
+
+
+* POWERFUL AUTOMATION PLATFORM.
+
+
+1. Configuration management 
+2. Provisioning
+3. Deployment (ci/cd - to deploy artifacts to targeted server)
+4. Network Automation.
+
+===============================================================================================================================================
+
+
+Variables Precedences:
+
+1. **playbook vars**
+
+---
+- name: playbook varaiables
+  hosts: all
+  become: yes
+  vars:
+    dbname: sandhyadb
+    dbcomm: from playbook varaiable
+
+  tasks:
+    - name: to create db user
+      ansible.builtin.user:
+        name: "{{dbname}}"
+        comm: "{{dbcomm}}"
+      register: dboutput
+
+    -name: to print output
+     debug:
+       var: dboutput
+
+2. **group_vars/all  (for all the hosts in inventory file)**
+
+- create file group_vars/all
+
+# inside file
+  dbname: mysqldb
+  dbcomm: group_vars/all
+
+3. ** group_vars/groupname (for ceratin group of hosts) **
+
+- create file group_vars/webservers
+
+# inside file
+  dbname: postgresqldb
+  dbcomm: from group_vars/groupname_weservers
+
+4. **host_vars/host_name**
+create file host_vars/web01
+
+# inside file
+  dbname: mallidb
+  dbcomm: from host_vars/web01
+  
+**Priority:**
+
+0. -e  var_name =value (in commnad line can override values - which is higher priority)
+1. playbook vars
+2. host vars file
+3. group_name vars file
+4. vars_all file
+
+in roles :
+1.. vars.yaml file
+2. defaults.yaml file
+
+
+
+
+
+
+
+
+
+

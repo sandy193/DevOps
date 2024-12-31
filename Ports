@@ -1,0 +1,26 @@
+Protocols & port numbers:
+
+ 
+Label on column        Service name                      UDP and TCP port numbers
+
+1.DNS                  Domain name service-UDP           UDP 53
+
+2.DNS-TCP              Domain Name Service-TCP           TCP 53
+
+3.HTTP                 Web                               TCP 80
+
+4.HTTPS                Secure Web(SSL)                   TCP 443
+
+5.SMTP                 Simple Mail Transfer Protocol     TCP 25
+
+6.POP                  Post Office Protocol              TCP 109,110
+
+7.SNMP                 Simple Network Management         TCP 161,162 UDP 161,162
+
+8.TELNET               Telnet Terminal                   TCP 23
+
+9.FTP                  File Transfer Protocol            TCP 20,21
+
+10.SSH                 Secure Shell(terminal)            TCP 22
+
+11.AFP IP              Apple File Protocol/IP            TCP 44,548

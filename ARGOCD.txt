@@ -1,0 +1,112 @@
+ARGOCD:
+
+Lets see what is GitOps first,
+
+Without GitOps:
+
+ if you take CI for versioning, keep track of things we have git and for CD nothing is there to track the things like who have made things in the Kubernetes cluster and also maintaining the versioning. Thats where the GitOps comes into play.
+
+GitOps uses git as single source of truth to deliver applications and infrastructure.
+
+Consider an example, when you makes changes to the manifests yaml file that is present in the git and the CD tool like Argocd will automatically takes that updated file and deploy into the Kubernetes cluster
+
+Note:
+What problems GitOps is solving is,
+It will keep track of deployments
+
+Whenever you want to modify anything directly on the Kubernetes cluster then GitOps tool ArgoCd will not accept that change because if you want to modify anything in Kubernetes cluster then it has to comes from git manifests yaml file then it will automatically detect that change and then it will deploy in Kubernetes cluster.
+
+ArgoCd will continuously monitor all the resources in the Kubernetes cluster and store the cache, if anyone will try to make changes then the ArgoCd will override those changes. By this way we can achieve the security also because no one will make the changes in the Kubernetes cluster.
+
+Advantage of GitOps:
+1. security 
+2. Versioning (keep track of changes)
+3. Auto healing of any unwanted changes 
+4. Continuous reconciliation means if any one makes changes directly in Kubernetes cluster those changes it will not consider it, it just ignore those changes.
+
+Let’s understand the how ArgoCd works,
+Whenever the developer commit the changes to the manifests yaml files that are stored in the git.ArgoCd will automatically detects that change and it will pick that file and then it will deploy in the Kubernetes cluster. This how ArgoCd works.
+
+Architecture of ArgoCd:
+how ArgoCd internally works,
+
+repo server micro service takes the git state and stores in it. Application controller micro service takes the Kubernetes states and stores in it. The application controller talks to repo server and compare the state, if the bothe states are same then it will not do anything, if the repo server state changes then the application server takes that change and then deploy to Kubernetes cluster. There is ui/cli micro service, if you want to connect to ArgoCd via UI or CLI then these service will do that. And another one is DEX which is used for SSO(single sign on) authentication to the UI/CLI. The last one is REDIS which is used for caching because for some reasons the application controller goes down and after some time it will come up and some where  we need to store the state of Kubernetes cluster in our case we will store in Redis.
+
+Note:
+They are three ways to install ArgoCd:
+1. Yaml manifests 
+2. Helm charts
+3. Operators 
+
+The best way to install ArgoCd, through operators.
+
+How to access ArgoCd in UI:
+This is using Minikube only,
+   1.kubectl get svc -n argocd(name_space 
+     name) 
+     this is to check the all the running services in 
+     this name space.
+2. argocd-server is responsible for the UI or CLI.
+3. kubectl edit svc argocd-server -n argocd this is used to edit the argocd-server and in that file we need to change the type ClusterIP to NodePort.
+4. Now we can access this using terminal and if you want to access in browser then we have to do port forwarding or we need to create a tunnel.
+5. kubectl service list -n argocd this will list all the services.
+6. kubectl service argocd-server -n argocd it will create a tunnel and it will provide a IP address.
+7. Take that IP address and paste it browser then ArgoCd UI will come up.
+8. for ArgoCd login credentials use username as admin.
+9. For password -> kubectl get secret -n argocd. This will list the secrets.
+10. kubectl edit secret argocd-initial-admin-secret -n argocd
+11. copy the password, password is encrypted by default we need to decrypt it using base64.
+12. echo password | base64 —decode. It will display the password.
+13. it will login into the Argocd and then you need to create the application. You need to provide details like GitHub url and the path where Kubernetes manifests presents etc
+
+You can also access the Argocd through CLI, 
+1. Install ArgoCd cli
+2. In google search for Argocd command reference and then search for create app.
+3. Take the options whatever you want and then run it. The application is up.
+4. Before running the above command, first you need to login into the Argocd
+5. argocd login url(argocd url that we have tunnelled above)
+6. Then it will ask for username that is admin and the password that is decrypted above.
+
+
+Multi cluster deployment in Kubernetes using argocd:
+
+ArgoCd has two deployment methods:
+They are 1.hub spoke model
+                 2. Standalone model.
+
+Hub spoke model: 
+in hub spoke model, for deploying the manifests file in Kubernetes cluster only one ArgoCd is present that is centralised and it will watch for it on git and if anything changes then it will deploy to the multiple clusters in Kubernetes.ArgoCd will be deploy to n number of clusters in Kubernetes.
+
+Standalone model:
+In standalone model, for every cluster one ArgoCd is present and it is responsible to deploy the manifests files in respective cluster in Kubernetes. Every ArgoCd will continuously monitor the git for changes, if anything changes then it will deploy to the respective cluster in Kubernetes. This model we have implemented above.
+
+Let’s see how we can setup multi cluster deployment:
+1. Create three clusters and one is for hub like this is where we install ArgoCd and other two for deployment of application.
+2. kubectl config get-contexts  this will show all the clusters.
+3. kubectl config use-context context-name this will switch to that cluster.
+4. kubectl config current-context this will show the current cluster
+5. switch to the hub cluster and then install ArgoCd in it. Use doc for installation of ArgoCd.
+6. kubectl get pods -n argocd(mention namespace name) this will show all the pods and wait for the pods to be running 
+7. kubectl get cm -n argocd this will show all the configmaps.
+8. Edit the cmd configmap. kubectl edit configmap argocd-cmd-params-cmd -n argocd
+9. add this at end of the file.
+10. data:11.    Server.insecure: “true”
+12. This is to run the ArgoCd in secure way using http.
+13. kubectl get svc -n argocd this is to check whether the services are running or not.
+14. kubectl edit svc argocd-server -n argocd in that file change the type from ClusterIP to NodePort.
+15. kubectl get pods -n ardocd  this will show the pods and also the port mapping.
+16. Copy the http port for the argocd-server and go to aws and take the public ip of hub cluster and paste it browser like publicip:port
+17. ArgoCd UI will up and running.
+18. kubectlb get secrets -n argocd this where initial password for ArgoCd is present.
+19. kubectl edit secret argocd-initial-admin-secret -n argocd this will display the password.
+20. By default password is encrypted and you need to decrypt it using base64. echo password | base64 —decode. It will generate the actual password
+21. We need to add the clusters to the ArgoCd, through UI we cannot add the clusters but we can delete it.
+22. Install the ArgoCd CLI and create the cluster . For that check official documentation. Before running this command first login into the ArgoCd through CLI using argocd login ip address of the argocd ui server.
+23. The final step is to get the manifests files from git and ArgoCd will deploy it to the clusters in Kubernetes.
+24. Go to the ArgoCd UI and create the two applications for the two clusters and that’s it.
+
+Overview of it:
+1. create the clusters
+2. In the hub cluster, install the argocd
+3. Verify login
+4. Create the clusters using commands.

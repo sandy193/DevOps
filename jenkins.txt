@@ -1,0 +1,65 @@
+jenkins:
+How to integrate vscode with github:
+1. Install github pull requests and issues plugin
+2. Click on source control icon on vscode and then it shows clone repository.
+3. Then click on clone repository, it will show clone repository from github
+4. Click on it and it will ask you authenticate the github credentials.
+5. A temporary token will be stored in the git credential manager.
+6. And that’s it integration is done 
+
+NOTE : 
+The difference between variable and parameter in declarative pipeline is variable cannot be updated in runtime while parameter can be updated during runtime.
+
+Environmental variable can be access inside the pipeline using $env_name 
+Paramters can be access inside the pipeline using ${params.name}
+
+Blue Ocean plugin really good for jenkins, it provides nice UI and we can easily understand the pipeline flow. This is really helpful in understanding the parallel stages
+
+If we want to work with multi branch pipeline, first install multibranch pipeline plugin and then run the job. Based on the jenkinsfile it will takes the branch i.e lets just say you have two branches and one is develop and another one is master. In develop branch we will deploy the code into dev environment and in master branch we will deploy the code into prodution environment. Based on the branch, it will deploy the code into that environment.
+
+Jenkins is used to automate the process from build to deployment and jenkins also do the process like deploy the code into different environment.
+
+Difference between dev, staging and production are dev is where we develop and test the code with less service like one master and one node.
+In staging like three masters and 10 nodes and in prod 5 masters and 20 nodes. Prod is where customers are using the product.
+
+The manual steps that are required without automation are unit testing i.e method testing like in calculate for addition method we will write test case as 2+3 =5 . Static code analysis i.e lets say in one component you have declared 10 variables and you have used only 5 variables then the memory is wasted. We you need remove those unused variables and also the code structure like syntax etc. code quality/ vulnerability i.e if you change the version, our application need to work in the same way and does not compromise the security. Automation testing like functional testing i.e in unit testing you have test for that method only where as in functional testing we need to do end to end testing that means  we need to verify that method does not distrub the other functionalities or methods. Reports are very important because to see how many test cases are passed and fali etc. deployment i.e after doing these we need to deploy the code. These manual process takes months to deliver the product to the customers.
+
+If we use automation tools like jenkins, all the above manual steps will be managed in the jenkins. So that the product will be delivers within days or weeks to the customers.
+
+The disadvantage of using jenkins in ec2 instance is, consider you have one master and 3 slave or agent nodes. The master node is sending the traffic to agent 3 which has windows and 1, 2 for linux. Whenever the request comes for master node and which linux related and it will redirect to the 1 or 2 agent node and here agent 3 receive request very rarely and wasting the resources on aws. When you use auto scaling groups then also we need to use atleast one agent for that and still wasting the resources. Better approach is using docker.
+
+Let’s see how we can use docker for managing the jenkins. Docker is very light weight to use.
+In ec2 using jenkins whenever you want to upgrade the package or version you need to login to that ec2 instance due to that some problems may occur. So when you use docker it is very easy to create, destroy and using single command to run the container.using docker as a agent or slave decreases the cost and increases the efficiency.
+
+Lets see how docker agent works, whenever the request receive in the master then docker will create the container and run the job in the container and then it will destroy the container.
+Due to this we can save lot of resources and cost as well.initially only the master is present so, whenever the request receives then only it will create the container and run job, after the job is finished then it will destroy that container.
+
+When you use ec2 instance as a agent or slave then whenever you want to upgrade the version of the linux or windows then you need to login and do that process manually. This has a lot of work. So when you use docker, in the jenkinsfile you just need to change the version then it will configure it that’s it. It is very simple in using docker.
+
+Github actions is also used for CI/CD and it is specific to GitHub. Like cloud formation is IAC but it is specific to Aws and terraform is also IAC and it is not specific to one provider.
+
+Github actions uses YAML syntax to write the script.
+
+Github actions are useful when you are using GitHub and in future also you are not migrating to different VCS and also you are using the public repository. If you use private repository then you have to pay for that.
+
+When compare to Jenkins, if you want to setup a new instance of Jenkins then you have ec2 instance and install Jenkins and then need to setup the process for Jenkins and need to expose to the port. In future you need to upgrade the version of Jenkins you have do all these things. When you use GitHub action these things you don’t have to do, you just need to write the YAML file thats it.
+
+NOTE:
+if you want to transfer files from one server to another server you can use scp or rsync.
+
+If you want to backup the Jenkins then go to home directory of the Jenkins and in that copy the .Jenkins folder and that’s it.
+
+.Jenkins folder contains all the information like builds and pipeline information etc.
+
+Distributed build or master-slave architecture setup:
+1. check the whether the jenkins url is correct or not. Go to manage jenkins -> configure system -> jenkins url.
+2. It should matches with the browser jenkins url.
+3. Check whether agent (slave) port is enabled or not i.e port 50000.  Go to manage jenkins -> configure global security -> Agents.
+4. Create two jenkins slave vm’s and one master vm. Enable port 50000 on the master and slave vm’s.
+5. In jenkins, click on build executor status and then click on new node.
+6. Give the name for jenkins slave vm and check the box and then click on ok.
+7. Provide the details like no.of executor i.e no.of cpu’s, remote root directory i.e it is the path where our slave log data will store, in in usage choose only build jobs with label expression matching with this node, in launch method choose launch agent(slave) by connecting it to the controller i.e we need to execute one command on the slave vm and then it will connect to the master and keep another details as default.
+8. Click on the slave node and it will display the command that needs to run on the slave vm to make connection.
+9. Download the agent.jar file and take the public of the slave vm.
+10. Open the winscp and paste the public url and transfer the agent.jar file to the slave vm. i.e winscp is used to transfer files from local to the sever.
+11. login to the slave vm (ssh). Do ls -lrt here the agent.jar file is present and give the permission to that jar file and move this file to the path that is mention in the remote root directory and run the command. It will get connected to the master.
